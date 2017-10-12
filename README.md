@@ -1,6 +1,6 @@
 # json_validator
 
-A library for Dart developers. Its purpose is to validate json data structures. The data structure is modelled using JsonField objects. Then the json data structure can be validated. Missing fields are identified. Fields of the wrong type are identified and removed from the validated object.
+A library for Dart developers. Its purpose is to validate json data structures. The data structure is modelled using JsonValueValidator objects. Then the json data structure can be validated. Missing fields are identified. Fields of the wrong type are identified and removed from the validated object.
 
 ## Usage
 
@@ -11,14 +11,13 @@ A simple usage example:
     main() {
       var personMap = {"name":"sarah", "age":40, "hasLongHair":false};
     
-      var personValidator = new JsonMapField("aName", [new JsonIntField("age"),
-        new JsonStringField("name"),
-        new JsonBoolField("hasLongHair")
+      var personValidator = new JsonMapValidator("aName", [new JsonIntValidator("age"),
+      new JsonStringValidator("name"),
+      new JsonBoolValidator("hasLongHair")
       ]);
     
       var validatedPersonMap = personValidator.parse(personMap);
-      print(personValidator.errors);
-      
+      print(personValidator.errors);      
     }
     
 Please see the test file for more usage examples.
