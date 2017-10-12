@@ -52,7 +52,7 @@ class JsonDoubleValidator extends JsonValueValidator<double> {
 
 /// helper class for DateTime fields. Expects an int in millisecondsSinceEpoch
 class JsonDateTimeValidator extends JsonValueValidator<DateTime> {
-  static DateTime NULL = new DateTime.fromMillisecondsSinceEpoch(0);
+  static DateTime ZERO = new DateTime.fromMillisecondsSinceEpoch(0);
 
   DateTime parse(dynamic d) {
     errors.clear();
@@ -64,6 +64,22 @@ class JsonDateTimeValidator extends JsonValueValidator<DateTime> {
   }
 
   JsonDateTimeValidator(String name, {bool required=true, DateTime defaultVal=null}):super(name, required:required, defaultVal:defaultVal);
+}
+
+/// helper class for Duration fields. Expects an int in millisecondsSinceEpoch
+class JsonDurationValidator extends JsonValueValidator<Duration> {
+  static Duration ZERO = new Duration();
+
+  Duration parse(dynamic d) {
+    errors.clear();
+    if (d is! int) {
+      errors.add("${_path}not an int");
+      return defaultVal;
+    }
+    return new Duration(milliseconds: d as int);
+  }
+
+  JsonDurationValidator(String name, {bool required=true, Duration defaultVal=null}):super(name, required:required, defaultVal:defaultVal);
 }
 
 /// For maps where the names of the keys are not known in advance

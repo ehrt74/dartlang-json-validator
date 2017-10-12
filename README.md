@@ -26,4 +26,4 @@ Please see the test file for more usage examples.
 
 Please file feature requests and bugs at the [issue tracker][tracker].
 
-[tracker]: http://example.com/issues/replaceme
+[tracker]: https://github.com/ehrt74/dartlang-json-validator/issues
