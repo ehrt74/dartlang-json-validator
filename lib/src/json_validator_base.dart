@@ -1,185 +1,177 @@
 // Copyright (c) 2017, edouard. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
-// TODO: Put public facing types in this file.
+/// A ValueValidator can be used to check that a value is of the required type T.
+/// Calling the validate method will return either an object of type T or null.
+abstract class ValueValidator<T> {
 
-/// JsonValueValidator is used to validate a json value according to the supplied options
-abstract class JsonValueValidator<T> {
-  /// the name of the key pointing to this field. This will appear in error messages.
-  final String name;
-
-  /// if an error should be recorded if this field is missing.
-  final bool required;
-
-  /// default value to be used if the field is invalid.
-  final T defaultVal;
-
-  /// a list of all errors encountered during validation of a json value
-  final List<String> errors = new List<String>();
-
-  String get _path {
-    if(name!=null) {
-      return "$name/";
-    }
-    return "";
-  }
-
-
-  T parse(dynamic d) {
+  /// validate is called with the object to be tested. When overloading it should
+  /// return either a valid object of type T or null
+  T validate(dynamic d) {
     errors.clear();
     if (d is! T) {
-      errors.add("${_path}not of class $T");
-      return defaultVal;
+      errors.add("not a $T");
+      return null;
     }
-    return d as T;
+    return d;
   }
 
-  JsonValueValidator(this.name, {bool required:true, T defaultVal:null}):this.required=required, this.defaultVal=defaultVal;
+  /// errors contains a list of all errors found while validating. for collections
+  /// the error path is included
+  final List<String> errors = new List<String>();
 }
 
-class JsonStringValidator extends JsonValueValidator<String> {
-  JsonStringValidator(String name, {bool required:true, String defaultVal:null}):super(name, required:required, defaultVal:defaultVal);
-}
-class JsonBoolValidator extends JsonValueValidator<bool> {
-  JsonBoolValidator(String name, {bool required:true, bool defaultVal:false}):super(name, required:required, defaultVal:defaultVal);
-}
-class JsonIntValidator extends JsonValueValidator<int> {
-  JsonIntValidator(String name, {bool required:true, int defaultVal:0}):super(name, required:required, defaultVal:defaultVal);
-}
-class JsonDoubleValidator extends JsonValueValidator<double> {
-  JsonDoubleValidator(String name, {bool required:true, double defaultVal:0.0}):super(name, required:required, defaultVal:defaultVal);
+/// IntValidator can be used to test that a dynamic value is an int
+class IntValidator extends ValueValidator<int> {}
+
+/// BoolValidator can be used to test that a dynamic value is a bool
+class BoolValidator extends ValueValidator<bool> {}
+
+/// DoubleValidator can be used to test that a dynamic value is a double
+class DoubleValidator extends ValueValidator<double> {}
+
+/// StringValidator can be used to test that a dynamic value is a String
+class StringValidator extends ValueValidator<String> {}
+
+/// A MapField wraps a ValueValidator with additional configuration.
+/// an optional defaultValue paramater will be returned if validate is called
+/// on invalid data
+class MapField<T> {
+  /// isRequired returns true if defaultValue is set to something other than
+  /// null. A MapValidator will return null if a required MapField returns null
+  bool get _required => defaultValue==null;
+
+  /// validator will be used to validate the data stored at the field location
+  final ValueValidator<T> validator;
+
+  /// defaultValue will be returned if validation fails
+  final T defaultValue;
+
+  ///A MapField wraps a ValueValidator. defaultValue will be returned if
+  ///validation fails
+  MapField(this.validator, [this.defaultValue]);
 }
 
-/// helper class for DateTime fields. Expects an int in millisecondsSinceEpoch
-class JsonDateTimeValidator extends JsonValueValidator<DateTime> {
-  static DateTime ZERO = new DateTime.fromMillisecondsSinceEpoch(0);
+///ListValidator can be used to validate a list of objects of the same type
+class ListValidator<T> extends ValueValidator<List> {
+  ///validator is used to validate each list entry
+  final ValueValidator validator;
 
-  DateTime parse(dynamic d) {
-    errors.clear();
-    if (d is! int) {
-      errors.add("${_path}not an int");
-      return defaultVal;
+  ///validate will create a list of validated entries. if there are no valid
+  ///entries, null will be returned
+  List<T> validate(dynamic d) {
+    if (d is! List) {
+      errors.add("not a List");
+      return null;
     }
-    return new DateTime.fromMillisecondsSinceEpoch(d as int);
-  }
-
-  JsonDateTimeValidator(String name, {bool required=true, DateTime defaultVal=null}):super(name, required:required, defaultVal:defaultVal);
-}
-
-/// helper class for Duration fields. Expects an int in millisecondsSinceEpoch
-class JsonDurationValidator extends JsonValueValidator<Duration> {
-  static Duration ZERO = new Duration();
-
-  Duration parse(dynamic d) {
-    errors.clear();
-    if (d is! int) {
-      errors.add("${_path}not an int");
-      return defaultVal;
-    }
-    return new Duration(milliseconds: d as int);
-  }
-
-  JsonDurationValidator(String name, {bool required=true, Duration defaultVal=null}):super(name, required:required, defaultVal:defaultVal);
-}
-
-/// For maps where the names of the keys are not known in advance
-class JsonUnknownKeysMapValidator extends JsonValueValidator<Map> {
-
-  /// the values of the map to be validated are validated against this JsonValueValidator
-  JsonValueValidator field;
-
-  Map<String, dynamic> parse(dynamic d) {
-    errors.clear();
-    if (d is! Map<String, dynamic>) {
-      errors.add("${_path}not a Map<String, dynamic>");
-      return defaultVal;
-    }
-    var m = d as Map<String, dynamic>;
-    var vals = new Map<String, dynamic>();
-    for (var key in m.keys) {
-      var val = field.parse(m[key]);
-      errors.addAll(field.errors.map((String s)=>"${_path}${key}$s"));
-      if(val!=null)
-        vals[key]=val;
-    }
-    return vals;
-  }
-
-  JsonUnknownKeysMapValidator(String name, this.field, {bool required:true, Map defaultVal:null}):super(name, required:required, defaultVal:defaultVal);
-}
-
-class JsonMapValidator extends JsonValueValidator<Map> {
-  List<JsonValueValidator> fields;
-
-  /// if set to true, if a field does not validate the whole map will be replaced by defaultVal
-  bool mustAllValidate = false;
-
-
-
-  Map<String, dynamic> parse(dynamic d) {
-    errors.clear();
-    if (d is! Map<String, dynamic>) {
-      errors.add("${_path}not a Map<String, dynamic>");
-      return defaultVal;
-    }
-    var m = d as Map<String, dynamic>;
-    var vals = new Map<String, dynamic>();
-    for (var field in fields) {
-      if(!m.containsKey(field.name)) {
-        if (field.required) {
-          errors.add("${_path}${field.name}/required field missing");
-          if (mustAllValidate) {
-            errors.add("${_path}discarding");
-            return defaultVal;
-          }
-        }
+    var ret = new List<T>();
+    for (int i=0; i<d.length; i++) {
+      var d2 = d[i];
+      if (d2 is! T) {
+        errors.add("${i}/not a $T");
         continue;
       }
-      dynamic val = field.parse(d[field.name]);
-      errors.addAll(field.errors.map((String s)=>"${_path}$s"));
-      if (val!=null) {
-        vals[field.name] = val;
-      } else if(mustAllValidate) {
-        errors.add("${_path}discarding");
-        return defaultVal;
+      T v = validator.validate(d2);
+      errors.addAll(validator.errors.map((String s)=>"${i}/$s"));
+      if (v==null) {
+        errors.add("${i} failed validation");
+        continue;
       }
+      ret.add(v);
     }
-    return vals;
+    if (ret.isEmpty) {
+      return null;
+    }
+    return ret;
   }
-  JsonMapValidator(String name, this.fields, {bool mustAllValidate=false, bool required=true, Map<String, dynamic> defaultVal=null}):super(name, required:required, defaultVal:defaultVal) {
-    this.mustAllValidate=mustAllValidate;
-  }
+
+  //validator is used to validate each object in the list
+  ListValidator(this.validator);
 }
 
-class JsonListValidator extends JsonValueValidator<List> {
-  JsonValueValidator field;
+///MapValidator can be used to validate a map with known key names
+class MapValidator extends ValueValidator<Map> {
 
-  /// if set to true, if one field in the json list does not validate, parse will return defaultVal
-  bool mustAllValidate = false;
+  ///If allFieldsMustValidate is true, validate will return null if any value
+  ///in the map fails validation
+  final bool allFieldsMustValidate;
 
-  List<dynamic> parse(dynamic d) {
-    errors.clear();
-    if (d is! List) {
-      errors.add("$name is not a List");
-      return defaultVal;
+  ///A map of keys to wrapped validators which describes the map structure
+  final Map<String, MapField> fields;
+
+  ///validate tries to parse its argument using the structure of the fields
+  ///property. If allFieldsMustValidate is true and a field does not validate,
+  ///null is returned. If all fields fail validation, null is returned
+  Map<String, dynamic> validate(dynamic d) {
+    if (d is! Map) {
+      errors.add("not a Map");
+      return null;
     }
-    var l = d as List;
-    var vals = new List();
-    for (int i=0; i<l.length; i++) {
-      var o = l[i];
-      dynamic val = field.parse(o);
-      errors.addAll(field.errors.map((String e)=>"$_path${i}/${e}"));
-      if (field.errors.isNotEmpty && mustAllValidate) {
-        errors.add("${_path}discarding");
-        return defaultVal;
+    var ret = new Map<String, dynamic>();
+    for(String key in fields.keys) {
+      MapField f = fields[key];
+      if (!d.containsKey(key)) {
+        if (f._required) {
+          errors.add("${key} missing");
+          if (allFieldsMustValidate) return null;
+        }
+        else ret[key] = f.defaultValue;
+        continue;
       }
-      if (val!=null)
-        vals.add(val);
+      var v = f.validator.validate(d[key]);
+      errors.addAll(f.validator.errors.map((String e)=>"${key}/${e}"));
+      if (v==null) {
+        errors.add("${key} failed validation");
+        if (allFieldsMustValidate) return null;
+        continue;
+      }
+      ret[key] = v;
+
     }
-    return vals;
+    if (ret.isEmpty)
+      return null;
+    return ret;
   }
 
-  JsonListValidator(String name, this.field, {bool mustAllValidate:false, bool required=true, List defaultVal=null}):super(name, required:required, defaultVal:defaultVal) {
-    this.mustAllValidate=mustAllValidate;
+  ///MapValidator constructor takes a map of key name to MapField.
+  ///If allFieldsMustValidate is set to true, mapValidator.validate(data)
+  ///will return null if any field fails validation
+  MapValidator(this.fields, [this.allFieldsMustValidate=false]);
+}
+
+///MapUnknownKeysValidator is used to validate a map of key to objects. The same
+///ValueValidator is used to validate each value
+class MapUnknownKeysValidator<T> extends ValueValidator<Map> {
+
+  ///ValueValidator used to validate each value in the map supplied as argument
+  ///to the validate instance method
+  final ValueValidator<T> validator;
+
+  ///validate returns a map of keys to valid instances of T. If validation of a
+  ///value fails, this key is omitted in the returned map. If no values can be
+  ///validated, null is returned
+  Map<String, T> validate(dynamic d) {
+    if (d is! Map) {
+      errors.add("not a map");
+      return null;
+    }
+    var ret = new Map<String, T>();
+    for (String key in d.keys) {
+      var d2 = d[key];
+      var v = validator.validate(d2);
+      errors.addAll(validator.errors.map((String e)=>"${key}/${e}"));
+      if (v==null) {
+        errors.add("${key} failed validation");
+        continue;
+      }
+      ret[key]=v;
+    }
+    if (ret.isEmpty)
+      return null;
+    return ret;
   }
+
+  /// the validator used to validate each value in the map passed to the
+  /// validate instance method
+  MapUnknownKeysValidator(this.validator);
 }

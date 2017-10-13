@@ -10,14 +10,16 @@ A simple usage example:
 
     main() {
       var personMap = {"name":"sarah", "age":40, "hasLongHair":false};
-    
-      var personValidator = new JsonMapValidator("aName", [new JsonIntValidator("age"),
-      new JsonStringValidator("name"),
-      new JsonBoolValidator("hasLongHair")
-      ]);
-    
-      var validatedPersonMap = personValidator.parse(personMap);
-      print(personValidator.errors);      
+
+      var personValidator = new MapValidator({
+        "age":new MapField(new IntValidator()),
+        "name":new MapField(new StringValidator()),
+        "hasLongHair":new MapField(new BoolValidator(), false),
+        "likesIceCream":new MapField(new BoolValidator(), true),
+      });
+
+      print(personValidator.validate(personMap));
+      print(personValidator.errors);
     }
     
 Please see the test file for more usage examples.

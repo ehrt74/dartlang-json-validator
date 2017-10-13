@@ -6,6 +6,8 @@
 /// More dartdocs go here.
 library json_validator;
 
+
 export 'src/json_validator_base.dart';
+export 'src/json_validator_helpers.dart';
 
 // TODO: Export any libraries intended for clients of this package.

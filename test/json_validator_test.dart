@@ -6,123 +6,119 @@ import 'package:test/test.dart';
 
 void main() {
   group('String field', () {
-    JsonStringValidator jsf = new JsonStringValidator("aString", defaultVal:"missing");
+    StringValidator jsf = new StringValidator();
 
     test('001', () {
-      var s = jsf.parse("foo");
+      var s = jsf.validate("foo");
       expect(s=="foo", isTrue);
       expect(jsf.errors.isEmpty, isTrue);
     });
     test('002', () {
-      var s = jsf.parse(2);
+      var s = jsf.validate(2);
       print(jsf.errors);
-      expect(s=="missing", isTrue);
+      expect(s==null, isTrue);
       expect(jsf.errors.isEmpty, isFalse);
     });
   });
   group('DateTime field', () {
     var now = new DateTime.now();
-    var oneHourAgo = now.subtract(new Duration(hours:1));
-    var jdtf = new JsonDateTimeValidator("aDateTime", defaultVal:oneHourAgo);
+    var dtf = new DateTimeValidator();
 
     test('001', () {
-      var s = jdtf.parse(now.millisecondsSinceEpoch);
+      var s = dtf.validate(now.millisecondsSinceEpoch);
       expect(s.difference(now).inSeconds==0, isTrue);
-      expect(jdtf.errors.isEmpty, isTrue);
+      expect(dtf.errors.isEmpty, isTrue);
     });
     test('002', () {
-      var s = jdtf.parse("foobar");
-      expect(s==oneHourAgo, isTrue);
-      print(jdtf.errors);
-      expect(jdtf.errors.isEmpty, isFalse);
+      var s = dtf.validate("foobar");
+      expect(s==null, isTrue);
+      print(dtf.errors);
+      expect(dtf.errors.isEmpty, isFalse);
     });
   });
   group('List field', () {
-    var jlf = new JsonListValidator("aList", new JsonStringValidator(null));
+    var lf = new ListValidator(new StringValidator());
 
     test('001', () {
-      var s = jlf.parse(["foo", "bar"]);
+      var s = lf.validate(["foo", "bar"]);
       expect(s.length==2, isTrue);
-      expect(jlf.errors.isEmpty, isTrue);
+      expect(lf.errors.isEmpty, isTrue);
     });
     test('002', () {
-      var s = jlf.parse(["foo", true]);
+      var s = lf.validate(["foo", true]);
       expect(s.length==1, isTrue);
-      print(jlf.errors);
-      expect(jlf.errors.isEmpty, isFalse);
+      print(lf.errors);
+      expect(lf.errors.isEmpty, isFalse);
     });
   });
   group('Map field', () {
-    var jmf = new JsonMapValidator("aMap", [new JsonStringValidator("name"),
-    new JsonIntValidator("age", defaultVal:null),
-    new JsonBoolValidator("hasLongHair")
-    ]);
+    var mf = new MapValidator({"name":new MapField(new StringValidator()),
+    "age": new MapField(new IntValidator()),
+    "hasLongHair": new MapField(new BoolValidator())});
 
     test('001', () {
-      var s = jmf.parse({"name":"Sarah", "age":40, "hasLongHair":false});
+      var s = mf.validate({"name":"Sarah", "age":40, "hasLongHair":false});
       print(s);
       expect(s.length==3, isTrue);
-      expect(jmf.errors.isEmpty, isTrue);
+      expect(mf.errors.isEmpty, isTrue);
     });
     test('002', () {
-      var s = jmf.parse({"name":"Sarah", "age":"40", "hasLongHair":false});
+      var s = mf.validate({"name":"Sarah", "age":"40", "hasLongHair":false});
       print(s);
       expect(s.length==2, isTrue);
-      expect(jmf.errors.isEmpty, isFalse);
+      expect(mf.errors.isEmpty, isFalse);
     });
     test('003', () {
-      var s = jmf.parse(["a", "list"]);
+      var s = mf.validate(["a", "list"]);
       print(s);
       expect(s==null, isTrue);
-      expect(jmf.errors.isEmpty, isFalse);
+      expect(mf.errors.isEmpty, isFalse);
     });
     test('004', () {
-      var s = jmf.parse({"name":"Sarah", "age":"40", "hasLongHair":false});
+      var s = mf.validate({"name":"Sarah", "age":"40", "hasLongHair":false});
       print(s);
       expect(s.length==2, isTrue);
-      expect(jmf.errors.isEmpty, isFalse);
+      expect(mf.errors.isEmpty, isFalse);
     });
   });
   group('Complicated object with unknown keys', ()
   {
-    var jmf = new JsonMapValidator("aMap",
-        [
-          new JsonStringValidator("name"),
-          new JsonIntValidator("age", defaultVal: null),
-          new JsonBoolValidator("hasLongHair"),
-          new JsonUnknownKeysMapValidator("cars", new JsonMapValidator("",
-              [
-                new JsonStringValidator("mark"),
-                new JsonIntValidator("topSpeed", required:true)
-              ], mustAllValidate: false))
-        ]);
+    var mf = new MapValidator({
+      "name":new MapField(new StringValidator()),
+      "age":new MapField(new StringValidator()),
+      "hasLongHair": new MapField(new BoolValidator()),
+      "cars": new MapField(new MapUnknownKeysValidator(
+        new MapValidator({
+          "mark":new MapField(new StringValidator()),
+          "topSpeed": new MapField(new IntValidator()),
+        }, false))),
+    });
     var o = {"name":"sarah", "age":40, "hasLongHair":"true", "cars":{"myFirstCar":{"mark":"jaguar", "topSpeed":140}, "myCurrentCar":{"mark":"bmw" }}};
     test('001', () {
-      var s = jmf.parse(o);
+      var s = mf.validate(o);
       print(s);
-      print(jmf.errors);
+      print(mf.errors);
       expect(s['name']=="sarah", isTrue);
     });
   });
   group('Complicated object', ()
   {
-    var jmf = new JsonMapValidator("aMap",
-        [
-          new JsonStringValidator("name"),
-          new JsonIntValidator("age", defaultVal: null),
-          new JsonBoolValidator("hasLongHair"),
-          new JsonListValidator("cars", new JsonMapValidator(null,
-              [
-                new JsonStringValidator("mark"),
-                new JsonIntValidator("topSpeed", required:true)
-              ], mustAllValidate: true), mustAllValidate: true)
-        ], mustAllValidate:true);
+    var mf = new MapValidator({
+      "name":new MapField(new StringValidator()),
+      "age":new MapField(new IntValidator()),
+      "hasLongHair":new MapField(new BoolValidator()),
+      "cars":new MapField(new ListValidator(new MapValidator({
+        "mark":new MapField(new StringValidator()),
+        "topSpeed":new MapField(new IntValidator()),
+      }))),
+    });
+
     var o = {"name":"sarah", "age":40, "hasLongHair":true, "cars":[{"mark":"jaguar", "topSpeed":140}, {"mark":"bmw" }]};
     test('001', () {
-      var s = jmf.parse(o);
+      var s = mf.validate(o);
       print(s);
-      print(jmf.errors);
-      expect(s==null, isTrue);
+      print(mf.errors);
+      expect(s["cars"].length==2, isTrue);
     });
   });
 }
