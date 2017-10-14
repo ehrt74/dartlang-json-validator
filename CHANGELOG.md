@@ -11,3 +11,7 @@
 ## 0.2.0
 
 - Changed validation of simple types to static instances. Added object validation framework
+
+## 0.2.1
+
+- Updated documentation

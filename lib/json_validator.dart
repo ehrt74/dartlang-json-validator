@@ -9,5 +9,6 @@ library json_validator;
 
 export 'src/json_validator_base.dart';
 export 'src/json_validator_helpers.dart';
+export 'src/object_builder.dart';
 
 // TODO: Export any libraries intended for clients of this package.
