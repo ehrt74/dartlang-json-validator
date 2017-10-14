@@ -12,10 +12,10 @@ A simple usage example:
       var personMap = {"name":"sarah", "age":40, "hasLongHair":false};
 
       var personValidator = new MapValidator({
-        "age":new MapField(new IntValidator()),
-        "name":new MapField(new StringValidator()),
-        "hasLongHair":new MapField(new BoolValidator(), false),
-        "likesIceCream":new MapField(new BoolValidator(), true),
+        "age":new MapField(INT),
+        "name":new MapField(STRING),
+        "hasLongHair":new MapField(BOOL, false),
+        "likesIceCream":new MapField(BOOL, true),
       });
 
       print(personValidator.validate(personMap));
