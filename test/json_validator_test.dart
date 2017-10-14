@@ -6,38 +6,35 @@ import 'package:test/test.dart';
 
 void main() {
   group('String field', () {
-    StringValidator jsf = new StringValidator();
-
     test('001', () {
-      var s = jsf.validate("foo");
+      var s = STRING.validate("foo");
       expect(s=="foo", isTrue);
-      expect(jsf.errors.isEmpty, isTrue);
+      expect(STRING.errors.isEmpty, isTrue);
     });
     test('002', () {
-      var s = jsf.validate(2);
-      print(jsf.errors);
+      var s = STRING.validate(2);
+      print(STRING.errors);
       expect(s==null, isTrue);
-      expect(jsf.errors.isEmpty, isFalse);
+      expect(STRING.errors.isEmpty, isFalse);
     });
   });
   group('DateTime field', () {
     var now = new DateTime.now();
-    var dtf = new DateTimeValidator();
 
     test('001', () {
-      var s = dtf.validate(now.millisecondsSinceEpoch);
+      var s = DATETIME.validate(now.millisecondsSinceEpoch);
       expect(s.difference(now).inSeconds==0, isTrue);
-      expect(dtf.errors.isEmpty, isTrue);
+      expect(DATETIME.errors.isEmpty, isTrue);
     });
     test('002', () {
-      var s = dtf.validate("foobar");
+      var s = DATETIME.validate("foobar");
       expect(s==null, isTrue);
-      print(dtf.errors);
-      expect(dtf.errors.isEmpty, isFalse);
+      print(DATETIME.errors);
+      expect(DATETIME.errors.isEmpty, isFalse);
     });
   });
   group('List field', () {
-    var lf = new ListValidator(new StringValidator());
+    var lf = new ListValidator(STRING);
 
     test('001', () {
       var s = lf.validate(["foo", "bar"]);
@@ -52,9 +49,9 @@ void main() {
     });
   });
   group('Map field', () {
-    var mf = new MapValidator({"name":new MapField(new StringValidator()),
-    "age": new MapField(new IntValidator()),
-    "hasLongHair": new MapField(new BoolValidator())});
+    var mf = new MapValidator({"name":new MapField(STRING),
+    "age": new MapField(INT),
+    "hasLongHair": new MapField(BOOL)});
 
     test('001', () {
       var s = mf.validate({"name":"Sarah", "age":40, "hasLongHair":false});
@@ -84,13 +81,13 @@ void main() {
   group('Complicated object with unknown keys', ()
   {
     var mf = new MapValidator({
-      "name":new MapField(new StringValidator()),
-      "age":new MapField(new StringValidator()),
-      "hasLongHair": new MapField(new BoolValidator()),
+      "name":new MapField(STRING),
+      "age":new MapField(STRING),
+      "hasLongHair": new MapField(BOOL),
       "cars": new MapField(new MapUnknownKeysValidator(
         new MapValidator({
-          "mark":new MapField(new StringValidator()),
-          "topSpeed": new MapField(new IntValidator()),
+          "mark":new MapField(STRING),
+          "topSpeed": new MapField(INT),
         }, false))),
     });
     var o = {"name":"sarah", "age":40, "hasLongHair":"true", "cars":{"myFirstCar":{"mark":"jaguar", "topSpeed":140}, "myCurrentCar":{"mark":"bmw" }}};
@@ -104,12 +101,12 @@ void main() {
   group('Complicated object', ()
   {
     var mf = new MapValidator({
-      "name":new MapField(new StringValidator()),
-      "age":new MapField(new IntValidator()),
-      "hasLongHair":new MapField(new BoolValidator()),
+      "name":new MapField(STRING),
+      "age":new MapField(INT),
+      "hasLongHair":new MapField(BOOL),
       "cars":new MapField(new ListValidator(new MapValidator({
-        "mark":new MapField(new StringValidator()),
-        "topSpeed":new MapField(new IntValidator()),
+        "mark":new MapField(STRING),
+        "topSpeed":new MapField(INT),
       }))),
     });
 

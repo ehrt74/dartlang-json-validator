@@ -1,6 +1,6 @@
 # json_validator
 
-A library for Dart developers. Its purpose is to validate json data structures. The data structure is modelled using JsonValueValidator objects. Then the json data structure can be validated. Missing fields are identified. Fields of the wrong type are identified and removed from the validated object.
+A library for Dart developers. Its purpose is to validate json data structures. The data structure is modelled using Validator objects. Then the json data structure can be validated. Missing fields are identified. Fields of the wrong type are identified and removed from the validated object.
 
 ## Usage
 

@@ -3,7 +3,7 @@
 
 /// A ValueValidator can be used to check that a value is of the required type T.
 /// Calling the validate method will return either an object of type T or null.
-abstract class ValueValidator<T> {
+class ValueValidator<T> {
 
   /// validate is called with the object to be tested. When overloading it should
   /// return either a valid object of type T or null
@@ -21,17 +21,19 @@ abstract class ValueValidator<T> {
   final List<String> errors = new List<String>();
 }
 
-/// IntValidator can be used to test that a dynamic value is an int
-class IntValidator extends ValueValidator<int> {}
+/// INT can be used to test that a dynamic value is an int
+final ValueValidator<int> INT = new ValueValidator<int>();
 
-/// BoolValidator can be used to test that a dynamic value is a bool
-class BoolValidator extends ValueValidator<bool> {}
+//class IntValidator extends ValueValidator<int> {}
 
-/// DoubleValidator can be used to test that a dynamic value is a double
-class DoubleValidator extends ValueValidator<double> {}
+/// BOOL can be used to test that a dynamic value is a bool
+final ValueValidator<bool> BOOL = new ValueValidator<bool>();
 
-/// StringValidator can be used to test that a dynamic value is a String
-class StringValidator extends ValueValidator<String> {}
+/// DOUBLE can be used to test that a dynamic value is a double
+final ValueValidator<double> DOUBLE = new ValueValidator<double>();
+
+/// STRING can be used to test that a dynamic value is a String
+final ValueValidator<String> STRING = new ValueValidator<String>();
 
 /// A MapField wraps a ValueValidator with additional configuration.
 /// an optional defaultValue paramater will be returned if validate is called
@@ -112,17 +114,31 @@ class MapValidator extends ValueValidator<Map> {
       MapField f = fields[key];
       if (!d.containsKey(key)) {
         if (f._required) {
-          errors.add("${key} missing");
-          if (allFieldsMustValidate) return null;
+          errors.add("${key}/missing");
+          if (allFieldsMustValidate) {
+            errors.add("discarding");
+            return null;
+          }
         }
-        else ret[key] = f.defaultValue;
+        else {
+          errors.add("${key}/added with value ${f.defaultValue}");
+          ret[key] = f.defaultValue;
+        }
         continue;
       }
       var v = f.validator.validate(d[key]);
       errors.addAll(f.validator.errors.map((String e)=>"${key}/${e}"));
       if (v==null) {
-        errors.add("${key} failed validation");
-        if (allFieldsMustValidate) return null;
+        if(f._required) {
+          errors.add("${key}/invalid");
+          if (allFieldsMustValidate) {
+            errors.add("discarding");
+            return null;
+          }
+        } else {
+          errors.add("${key}/replaced with value ${f.defaultValue}");
+          ret[key]=f.defaultValue;
+        }
         continue;
       }
       ret[key] = v;
