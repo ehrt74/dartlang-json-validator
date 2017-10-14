@@ -15,3 +15,7 @@
 ## 0.2.1
 
 - Updated documentation
+
+## 0.2.2
+
+- bug fix
