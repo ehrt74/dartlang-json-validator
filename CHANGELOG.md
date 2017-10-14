@@ -7,3 +7,7 @@
 ## 0.1.0
 
 - Changed syntax to allow simpler composition
+
+## 0.2.0
+
+- Changed validation of simple types to static instances. Added object validation framework
