@@ -14,8 +14,8 @@ A simple usage example:
       var personValidator = new MapValidator({
         "age":new MapField(INT),
         "name":new MapField(STRING),
-        "hasLongHair":new MapField(BOOL, false),
-        "likesIceCream":new MapField(BOOL, true),
+        "hasLongHair":new MapField(BOOL, defaultValue:false),
+        "likesIceCream":new MapField(BOOL, defaultValue:true),
       });
 
       print(personValidator.validate(personMap));

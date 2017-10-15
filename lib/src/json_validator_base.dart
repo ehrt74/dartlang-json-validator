@@ -35,13 +35,14 @@ final ValueValidator<double> DOUBLE = new ValueValidator<double>();
 /// STRING can be used to test that a dynamic value is a String
 final ValueValidator<String> STRING = new ValueValidator<String>();
 
+
 /// A MapField wraps a ValueValidator with additional configuration.
 /// an optional defaultValue paramater will be returned if validate is called
 /// on invalid data
 class MapField<T> {
-  /// isRequired returns true if defaultValue is set to something other than
-  /// null. A MapValidator will return null if a required MapField returns null
-  bool get _required => defaultValue==null;
+  /// A MapValidator will return null if mustValidate is set to true and
+  /// the MapField returns null when validating
+  final bool mustValidate;
 
   /// validator will be used to validate the data stored at the field location
   final ValueValidator<T> validator;
@@ -51,7 +52,7 @@ class MapField<T> {
 
   ///A MapField wraps a ValueValidator. defaultValue will be returned if
   ///validation fails
-  MapField(this.validator, [this.defaultValue]);
+  MapField(this.validator, {T defaultValue:null, bool mustValidate:false}):defaultValue=defaultValue, mustValidate=mustValidate;
 }
 
 ///ListValidator can be used to validate a list of objects of the same type
@@ -105,6 +106,7 @@ class MapValidator extends ValueValidator<Map> {
   ///property. If allFieldsMustValidate is true and a field does not validate,
   ///null is returned. If all fields fail validation, null is returned
   Map<String, dynamic> validate(dynamic d) {
+    errors.clear();
     if (d is! Map) {
       errors.add("not a Map");
       return null;
@@ -113,14 +115,12 @@ class MapValidator extends ValueValidator<Map> {
     for(String key in fields.keys) {
       MapField f = fields[key];
       if (!d.containsKey(key)) {
-        if (f._required) {
+        if (f.mustValidate || allFieldsMustValidate) {
           errors.add("${key}/missing");
-          if (allFieldsMustValidate) {
-            errors.add("discarding");
-            return null;
-          }
+          errors.add("discarding");
+          return null;
         }
-        else {
+        if (f.defaultValue!=null) {
           errors.add("${key}/added with value ${f.defaultValue}");
           ret[key] = f.defaultValue;
         }
@@ -129,13 +129,12 @@ class MapValidator extends ValueValidator<Map> {
       var v = f.validator.validate(d[key]);
       errors.addAll(f.validator.errors.map((String e)=>"${key}/${e}"));
       if (v==null) {
-        if(f._required) {
+        if(f.mustValidate || allFieldsMustValidate) {
           errors.add("${key}/invalid");
-          if (allFieldsMustValidate) {
-            errors.add("discarding");
-            return null;
-          }
-        } else {
+          errors.add("discarding");
+          return null;
+        }
+        if (f.defaultValue!=null) {
           errors.add("${key}/replaced with value ${f.defaultValue}");
           ret[key]=f.defaultValue;
         }

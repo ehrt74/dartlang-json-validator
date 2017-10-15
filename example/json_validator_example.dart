@@ -21,7 +21,7 @@ class CarBuilder extends ObjectBuilder<Car> {
 }
 
 var carValidator = new ObjectValidator<Car>({"mark":new MapField(STRING),
-"topSpeed":new MapField(INT, 100)}, new CarBuilder(), true);
+"topSpeed":new MapField(INT, defaultValue:100)}, new CarBuilder(), true);
 
 
 main() {
@@ -30,8 +30,8 @@ main() {
   var personValidator = new MapValidator({
     "age":new MapField(INT),
     "name":new MapField(STRING),
-    "hasLongHair":new MapField(BOOL, false),
-    "likesIceCream":new MapField(BOOL, true),
+    "hasLongHair":new MapField(BOOL, defaultValue:false),
+    "likesIceCream":new MapField(BOOL, defaultValue:true),
   });
 
   print(personValidator.validate(personMap));

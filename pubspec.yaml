@@ -1,6 +1,6 @@
 name: json_validator
 description: A Json validator. Will find and prune json structures according to a reference.
-version: 0.2.2
+version: 0.3.0
 homepage: https://github.com/ehrt74/dartlang-json-validator
 author: ehrt74 <edouardtavinor@gmail.com>
 

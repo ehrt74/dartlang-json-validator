@@ -74,7 +74,7 @@ class ObjectValidator<T> extends ValueValidator<T> {
   ///validate tries to parse its argument using the structure of the fields
   ///property. If allFieldsMustValidate is true and a field does not validate,
   ///null is returned. If all fields fail validation, null is returned
-  T validate(dynamic d) {
+  T call(dynamic d) {
     errors.clear();
     _mv.errors.clear();
     var m = _mv.validate(d);

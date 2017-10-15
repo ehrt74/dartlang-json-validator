@@ -86,8 +86,8 @@ void main() {
       "hasLongHair": new MapField(BOOL),
       "cars": new MapField(new MapUnknownKeysValidator(
         new MapValidator({
-          "mark":new MapField(STRING),
-          "topSpeed": new MapField(INT),
+          "mark":new MapField(STRING, mustValidate:true),
+          "topSpeed": new MapField(INT, defaultValue:100),
         }, false))),
     });
     var o = {"name":"sarah", "age":40, "hasLongHair":"true", "cars":{"myFirstCar":{"mark":"jaguar", "topSpeed":140}, "myCurrentCar":{"mark":"bmw" }}};
@@ -105,8 +105,8 @@ void main() {
       "age":new MapField(INT),
       "hasLongHair":new MapField(BOOL),
       "cars":new MapField(new ListValidator(new MapValidator({
-        "mark":new MapField(STRING),
-        "topSpeed":new MapField(INT),
+        "mark":new MapField(STRING, mustValidate:true),
+        "topSpeed":new MapField(INT, mustValidate:true),
       }))),
     });
 
@@ -115,7 +115,7 @@ void main() {
       var s = mf.validate(o);
       print(s);
       print(mf.errors);
-      expect(s["cars"].length==2, isTrue);
+      expect(s["cars"].length==1, isTrue);
     });
   });
 }
