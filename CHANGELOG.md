@@ -19,3 +19,7 @@
 ## 0.2.2
 
 - bug fix
+
+## 0.3.1
+
+- implemented finer grained control of validation of map fields
