@@ -9,6 +9,7 @@ DateTimeValidator DATETIME = new DateTimeValidator();
 ///return the time represented by this int in millisecondsSinceEpoch
 class DateTimeValidator extends ValueValidator<DateTime> {
   DateTime validate(dynamic d) {
+    clearInfos();
     if (d is! int) {
       errors.add("not an int");
       return null;
@@ -23,7 +24,7 @@ DurationValidator DURATION = new DurationValidator();
 ///return the duration represented by this int in milliseconds
 class DurationValidator extends ValueValidator<Duration> {
   Duration validate(dynamic d) {
-    errors.clear();
+    clearInfos();
     if (d is! int) {
       errors.add("not an int");
       return null;
@@ -40,7 +41,7 @@ class StringFromSelectionValidator extends ValueValidator<String> {
   final List<String> vals;
 
   String validate(dynamic d) {
-    errors.clear();
+    clearInfos();
     if (d is! String) {
       errors.add("not a string");
       return null;
@@ -60,9 +61,9 @@ class StringFromSelectionValidator extends ValueValidator<String> {
 
 class ObjectValidator<T> extends ValueValidator<T> {
 
-  ///If allFieldsMustValidate is true, validate will return null if any value
-  ///in the map fails validation
-  final bool allFieldsMustValidate;
+  ///If requireAllFields is true, validate will return null if any value
+  ///in the map is missing
+  final bool requireAllFields;
 
   ///A map of keys to wrapped validators which describes the map structure
 //  final Map<String, MapField> fields;
@@ -75,10 +76,12 @@ class ObjectValidator<T> extends ValueValidator<T> {
   ///property. If allFieldsMustValidate is true and a field does not validate,
   ///null is returned. If all fields fail validation, null is returned
   T validate(dynamic d) {
-    errors.clear();
+    clearInfos();
+//    errors.clear();
     _mv.errors.clear();
     var m = _mv.validate(d);
     errors.addAll(_mv.errors);
+    comments.addAll(_mv.comments);
     if (m==null) {
       return null;
     }
@@ -87,5 +90,5 @@ class ObjectValidator<T> extends ValueValidator<T> {
     return ret;
   }
 
-  ObjectValidator(Map<String, MapField> fields, this.objectBuilder, [this.allFieldsMustValidate=false]):_mv=new MapValidator(fields, allFieldsMustValidate);
+  ObjectValidator(Map<String, MapField> fields, this.objectBuilder, {this.requireAllFields:false}):_mv=new MapValidator(fields, requireAllFields:requireAllFields);
 }

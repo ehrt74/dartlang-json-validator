@@ -10,14 +10,14 @@ A simple usage example:
 
     main() {
       var personMap = {"name":"sarah", "age":40, "hasLongHair":false};
-
+    
       var personValidator = new MapValidator({
         "age":new MapField(INT),
         "name":new MapField(STRING),
         "hasLongHair":new MapField(BOOL, defaultValue:false),
         "likesIceCream":new MapField(BOOL, defaultValue:true),
       });
-
+    
       print(personValidator.validate(personMap));
       print(personValidator.errors);
     }

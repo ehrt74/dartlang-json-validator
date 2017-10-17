@@ -20,8 +20,13 @@ class CarBuilder extends ObjectBuilder<Car> {
   }
 }
 
-var carValidator = new ObjectValidator<Car>({"mark":new MapField(STRING),
-"topSpeed":new MapField(INT, defaultValue:100)}, new CarBuilder(), true);
+var carValidator = new ObjectValidator<Car>(
+    {
+      "mark":new MapField(STRING, mustValidate: true, mustBePresent: true),
+      "topSpeed":new MapField(INT, defaultValue:100, mustValidate: true, mustBePresent: false)},
+    new CarBuilder(),
+  requireAllFields: true
+);
 
 
 main() {
@@ -46,5 +51,6 @@ main() {
     print("map: $carMap");
     print("car: ${carValidator.validate(carMap)}");
     print("errors: ${carValidator.errors}");
+    print("comments: ${carValidator.comments}");
   }
 }

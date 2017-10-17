@@ -23,3 +23,7 @@
 ## 0.3.1
 
 - implemented finer grained control of validation of map fields
+
+## 0.4.0
+
+- moved all logic that effects map fields to the map field constructor
