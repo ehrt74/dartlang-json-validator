@@ -1,19 +1,38 @@
 import 'package:json_validator/src/source_dependency.dart';
 
 
+class Target {
+  final List<String> path;
+  final String value;
+
+  String toString()=>"{path: "+path.join("/")+", value: $value}";
+
+  Target(this.path, this.value);
+}
+
+class TargetList {
+  final List<Target> targets;
+  final List<String> errors;
+
+  String toString()=>
+      "{targets:${targets}, \nerrors:${errors.join("\n")}}";
+
+  TargetList(this.targets, this.errors);
+}
+
 class TargetTemplate {
   static final String WILDCARD = "#";
   static final String VAL = "VAL";
 
   final List<String> path;
 
-  String toString()=>"$path";
+  String toString()=>"${path}, valueTemplate: $valueTemplate";
 
   String valueTemplate;
 
   TargetTemplate(this.path, this.valueTemplate);
 
-  TargetError getTarget(Source source) {
+  _TargetError _getTarget(Source source) {
     var retPath = new List<String>();
     for (String p in path) {
       if (p.startsWith(WILDCARD)) {
@@ -21,10 +40,10 @@ class TargetTemplate {
         try {
           n = int.parse(p.substring(WILDCARD.length));
         } catch (e) {
-          return new TargetError(null, "could not parse $p as wildcard");
+          return new _TargetError(null, "could not parse $p as wildcard");
         }
         if (n >= source.dictionary.length) {
-          return new TargetError(null,
+          return new _TargetError(null,
               "${this}: dictionary too small for target template: ${source}");
         }
         retPath.add(source.dictionary[n]);
@@ -32,7 +51,7 @@ class TargetTemplate {
       }
       if (p == VAL) {
         if (source.value == null) {
-          return new TargetError(
+          return new _TargetError(
               null, "${this}: value not set in source ${source}");
         }
         retPath.add(source.value);
@@ -45,7 +64,7 @@ class TargetTemplate {
     if (valueTemplate==null) {
     } else if (valueTemplate==VAL) {
       if (source.value==null) {
-        return new TargetError(null, "${this}: value not set in source ${source}");
+        return new _TargetError(null, "${this}: value not set in source ${source}");
       }
       value = source.value;
     } else if(valueTemplate.startsWith(WILDCARD)) {
@@ -53,10 +72,10 @@ class TargetTemplate {
       try {
         n = int.parse(valueTemplate.substring(WILDCARD.length));
       } catch (e) {
-        return new TargetError(null, "could not parse $valueTemplate as wildcard");
+        return new _TargetError(null, "could not parse $valueTemplate as wildcard");
       }
       if (n >= source.dictionary.length) {
-        return new TargetError(null,
+        return new _TargetError(null,
             "${this}: dictionary too small for target template: ${source}");
       }
       value = source.dictionary[n];
@@ -64,26 +83,24 @@ class TargetTemplate {
       value = valueTemplate;
     }
 
-    return new TargetError(new Target(retPath, value), null);
+    return new _TargetError(new Target(retPath, value), null);
   }
 
-  List<TargetError> getTargets(List<Source> sources)=>sources.map((s)=>this.getTarget(s)).toList();
+  TargetList getTargetList(SourceList sourceList) {
+    var targets = new List<Target>();
+    var errors = new List<String>();
+    sourceList.sources.forEach((s) {
+      var ta = this._getTarget(s);
+      if (ta.target!=null) targets.add(ta.target);
+      if (ta.error!=null) errors.add(ta.error);
+    });
+    return new TargetList(targets, errors);
+  }
 }
 
-class TargetError {
+class _TargetError {
   final Target target;
   final String error;
 
-  TargetError(this.target, this.error);
+  _TargetError(this.target, this.error);
 }
-
-class Target {
-
-  String toString()=>"["+path.join("/")+"]:$value";
-
-  final List<String> path;
-  final String value;
-
-  Target(this.path, this.value);
-}
-
