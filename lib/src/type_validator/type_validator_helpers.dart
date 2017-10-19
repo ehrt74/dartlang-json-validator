@@ -1,5 +1,5 @@
-import 'json_validator_base.dart';
-import 'package:json_validator/src/object_builder.dart';
+import 'package:json_validator/src/type_validator/type_validator_base.dart';
+import 'package:json_validator/src/type_validator/object_builder.dart';
 
 
 /// a convenience instance of DateTimeValidator

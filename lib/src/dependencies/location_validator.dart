@@ -1,28 +1,28 @@
-import 'package:json_validator/src/source_dependency.dart';
-import 'package:json_validator/src/target_dependency.dart';
+import 'package:json_validator/src/dependencies/location_list.dart';
+import 'package:json_validator/src/dependencies/location.dart';
 
 
-TargetChecker TARGETCHECKER = new TargetChecker._intern();
+LocationValidator LOCATIONVALIDATOR = new LocationValidator._intern();
 
-class TargetChecker {
+class LocationValidator {
 
-  TargetChecker._intern();
+  LocationValidator._intern();
 
-  TargetList check(dynamic map, Iterable<Target> _targets) {
-    var targets = new List<Target>();
+  LocationList validateLocationsWithMap(List<Location> locations, dynamic map) {
+    var targets = new List<Location>();
     var errors = new List<String>();
 
-    _targets.forEach((Target t) {
+    locations.forEach((Location t) {
       String err = _checkTarget(t, map);
       if (err==null)
         targets.add(t);
       else
         errors.add(err);
     });
-    return new TargetList(targets, errors);
+    return new LocationList(targets, errors);
   }
 
-  String _checkTarget(Target t, dynamic map) {
+  String _checkTarget(Location t, dynamic map) {
     var p = t.path;
     while(p.isNotEmpty) {
       if (map is! Map)
