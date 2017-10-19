@@ -2,7 +2,6 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
 import 'package:json_validator/dependencies.dart';
-import 'package:json_validator/src/dependencies/location_list.dart';
 import 'package:test/test.dart';
 
 void main() {
