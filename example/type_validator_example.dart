@@ -13,7 +13,7 @@ class Car {
 }
 
 class CarBuilder extends ObjectBuilder<Car> {
-  Car build(Map<String, dynamic> m) {
+  Car build(dynamic m) {
     errors.clear();
     return new Car(m["mark"], m["topSpeed"]);
   }

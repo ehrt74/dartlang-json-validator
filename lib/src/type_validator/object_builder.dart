@@ -3,5 +3,5 @@
 abstract class ObjectBuilder<T> {
   final List<String> errors = [];
 
-  T build(Map<String, dynamic> m);
+  T build(dynamic m);
 }

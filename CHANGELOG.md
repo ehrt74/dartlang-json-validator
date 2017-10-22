@@ -27,3 +27,7 @@
 ## 0.4.0
 
 - moved all logic that effects map fields to the map field constructor
+
+## 0.5.1
+
+- changed object builder argument to dynamic to allow building of objects from simple values
